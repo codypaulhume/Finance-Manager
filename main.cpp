@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unordered_map>
+#include <stack>
 #include <vector>
 
 using namespace std;
@@ -10,10 +11,12 @@ class FinanceManager
 
 struct Category
 {
-    string name;
-    double allocated;
-    double spent;
-    double remaining;
+        string name;
+        double allocated;
+        double spent;
+        double getRemaining() const{
+            return allocated - spent;
+        }
 };
 
 class CategoryManager
@@ -32,7 +35,7 @@ public:
         categories.erase(name);
     }
 
-    Category getCategory(string name){
+    Category& getCategory(string name){
         return categories[name];
     }
 
@@ -41,21 +44,89 @@ public:
             cout << e.first << endl;
         }
     }
+
+    void printCategoryDetails(string name){
+        Category currentCategory = categories[name];
+        cout << currentCategory.name << endl;
+        cout << currentCategory.allocated << endl;
+        cout << currentCategory.spent << endl;
+        cout << currentCategory.getRemaining() << endl;
+    }
     
 };
 
+struct Transaction{
+    int id;
+    double amount;
+    string category;
+    string description;
+    string date;
+};
+
+class TransactionManager{
+    private:
+        CategoryManager& categoryManager;
+        stack<Transaction> recentTransactions;
+    public:
+        TransactionManager(CategoryManager& manager) : categoryManager(manager) {}
+
+        void addTransaction(Transaction transaction){
+            // Grab current category
+            Category& currentCategory = categoryManager.getCategory(transaction.category);
+            currentCategory.spent += transaction.amount;
+            recentTransactions.push(transaction);
+        }
+
+        void removeTransaction(Transaction transaction){
+            // Grab current category
+            Category currentCategory = categoryManager.getCategory(transaction.category);
+            // Multiply by negative 1 to add it back
+            currentCategory.spent += (transaction.amount * -1);
+        }
+
+        void undo(){
+            // Check to see if its empty
+            if(recentTransactions.empty()){
+                return;
+            }
+            // Grab the most recent transaction from the stack and pop it.
+            Transaction currentTransacton = recentTransactions.top();
+            recentTransactions.pop();
+
+            // Call remove transaction
+            removeTransaction(currentTransacton);
+
+        }
+};
+
 int main(){
-    Category fixed{"Fixed",1800.00,0.00,0.00}; 
 
-    Category entertainment{"Entertainment",500,0.00,0.00};
+    Category fixed{"Fixed",1800.00,0.00};
+    Category entertainment{"Entertainment",500,0.00};
+    Category groceries{"Groceries",500,0.00};
 
-    Category groceries{"Groceries",500,0.00,0.00};
+    Transaction expense{
+        0,
+        850,
+        "Fixed",
+        "Thats how much I pay for rent",
+        "Today"
+    };
 
-    // Add these above and test
+    // Create CategoryManager
     CategoryManager test;
+
+    // Add categories
     test.addCategory(fixed);
     test.addCategory(entertainment);
-    test.printCategories();
-    test.removeCategory("Fixed");
-    test.printCategories();
+    test.addCategory(groceries);
+
+    // Pass the existing CategoryManager into TransactionManager
+    TransactionManager tester(test);
+
+    // Add transaction
+    tester.addTransaction(expense);
+
+    // Print updated category
+    test.printCategoryDetails(expense.category);
 }
