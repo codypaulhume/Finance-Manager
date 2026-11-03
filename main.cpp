@@ -68,7 +68,8 @@ class TransactionManager{
         CategoryManager& categoryManager;
         stack<Transaction> recentTransactions;
     public:
-        TransactionManager(CategoryManager& manager) : categoryManager(manager) {}
+        TransactionManager(CategoryManager& manager)
+            : categoryManager(manager) {}
 
         void addTransaction(Transaction transaction){
             // Grab current category
