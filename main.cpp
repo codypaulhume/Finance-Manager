@@ -80,7 +80,7 @@ class TransactionManager{
 
         void removeTransaction(Transaction transaction){
             // Grab current category
-            Category currentCategory = categoryManager.getCategory(transaction.category);
+            Category& currentCategory = categoryManager.getCategory(transaction.category);
             // Multiply by negative 1 to add it back
             currentCategory.spent += (transaction.amount * -1);
         }
@@ -88,14 +88,17 @@ class TransactionManager{
         void undo(){
             // Check to see if its empty
             if(recentTransactions.empty()){
+                cout << "Nothing to undo" << endl;
                 return;
-            }
-            // Grab the most recent transaction from the stack and pop it.
-            Transaction currentTransacton = recentTransactions.top();
-            recentTransactions.pop();
+            }else{
+                // Grab the most recent transaction from the stack and pop it.
+                Transaction currentTransacton = recentTransactions.top();
+                recentTransactions.pop();
 
-            // Call remove transaction
-            removeTransaction(currentTransacton);
+                // Call remove transaction
+                removeTransaction(currentTransacton);
+            }
+            
 
         }
 };
@@ -130,4 +133,7 @@ int main(){
 
     // Print updated category
     test.printCategoryDetails(expense.category);
+    tester.undo();
+    test.printCategoryDetails(expense.category);
+    tester.undo();
 }
