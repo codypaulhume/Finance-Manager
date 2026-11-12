@@ -1,13 +1,10 @@
 #include <iostream>
 #include <unordered_map>
+#include <string>
 #include <stack>
 #include <vector>
 
 using namespace std;
-
-class FinanceManager
-{
-};
 
 struct Category
 {
@@ -103,37 +100,63 @@ class TransactionManager{
         }
 };
 
+class FinanceManager
+{
+private:
+    CategoryManager categoryManager;
+    TransactionManager transactionManager;
+
+public:
+    FinanceManager()
+        : categoryManager(),
+          transactionManager(categoryManager) {}
+
+    void addCategory(Category category){
+        categoryManager.addCategory(category);
+    }
+
+    void removeCategory(string category){
+        categoryManager.removeCategory(category);
+    }
+
+    void printCategories(){
+        categoryManager.printCategories();
+    }
+
+    void printCategoryDetails(string name){
+        categoryManager.printCategoryDetails(name);
+    }
+
+    void addTransaction(Transaction transaction){
+        transactionManager.addTransaction(transaction);
+    }
+
+    void removeTransaction(Transaction transaction){
+        transactionManager.removeTransaction(transaction);
+    }
+
+    void undo(){
+        transactionManager.undo();
+    }
+};
+
 int main(){
 
     Category fixed{"Fixed",1800.00,0.00};
     Category entertainment{"Entertainment",500,0.00};
     Category groceries{"Groceries",500,0.00};
 
-    Transaction expense{
-        0,
-        850,
-        "Fixed",
-        "Thats how much I pay for rent",
-        "Today"
-    };
+    Transaction expense{0,850,"Fixed","Thats how much I pay for rent","Today"};
+    
+    FinanceManager financeManager;
 
-    // Create CategoryManager
-    CategoryManager test;
+    financeManager.addCategory(fixed);
+    financeManager.addCategory(entertainment);
+    financeManager.addCategory(groceries);
+    financeManager.printCategories();
 
-    // Add categories
-    test.addCategory(fixed);
-    test.addCategory(entertainment);
-    test.addCategory(groceries);
-
-    // Pass the existing CategoryManager into TransactionManager
-    TransactionManager tester(test);
-
-    // Add transaction
-    tester.addTransaction(expense);
-
-    // Print updated category
-    test.printCategoryDetails(expense.category);
-    tester.undo();
-    test.printCategoryDetails(expense.category);
-    tester.undo();
+    financeManager.addTransaction(expense);
+    financeManager.printCategoryDetails("Fixed");
+    financeManager.undo();
+    financeManager.printCategoryDetails("Fixed");
 }
