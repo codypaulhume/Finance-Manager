@@ -1,2 +1,1 @@
-
-    financeManager.removeTransaction(expense);
+ 

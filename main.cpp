@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <string>
 #include <algorithm>
-#include <stack>
 #include <vector>
 
 using namespace std;
@@ -41,14 +40,17 @@ public:
         for(const auto& e : categories){
             cout << e.first << endl;
         }
+        cout << "----------" << endl;
     }
 
     void printCategoryDetails(string name){
+        cout << "Category Details:" << endl;
         Category currentCategory = categories[name];
-        cout << currentCategory.name << endl;
-        cout << currentCategory.allocated << endl;
-        cout << currentCategory.spent << endl;
-        cout << currentCategory.getRemaining() << endl;
+        cout << "Category: " << currentCategory.name << endl;
+        cout << "Allocated: " <<currentCategory.allocated << endl;
+        cout << "Spent: " <<currentCategory.spent << endl;
+        cout << "Remaining: " <<currentCategory.getRemaining() << endl;
+        cout << "----------" << endl;
     }
     
 };
@@ -98,9 +100,11 @@ class TransactionManager{
         }
 
         void printTransactions(){
+            cout << "Transaction IDs:" << endl;
             for(const auto& transaction : allTransactions){
                 cout << transaction.id << endl;
             }
+            cout << "----------" << endl;
         }
 };
 
@@ -158,12 +162,15 @@ int main(){
     financeManager.addCategory(fixed);
     financeManager.addCategory(entertainment);
     financeManager.addCategory(groceries);
-    financeManager.printCategories();
+    //financeManager.printCategories();
 
     financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
-    // financeManager.printCategoryDetails("Fixed");
+    financeManager.printCategoryDetails("Fixed");
+
     financeManager.printTransactions();
+
     financeManager.removeTransaction(expense);
     financeManager.printTransactions();
+    financeManager.printCategoryDetails("Fixed");
 }
