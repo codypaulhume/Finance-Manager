@@ -42,7 +42,6 @@ public:
         auto iterator = categories.find(name);
 
         if(iterator == categories.end()){
-            // Throw an exception
             return nullptr;
         }
 
@@ -59,11 +58,16 @@ public:
 
     void printCategoryDetails(const string& name){
         cout << "Category Details:" << endl;
-        Category currentCategory = categories[name];
-        cout << "Category: " << currentCategory.name << endl;
-        cout << "Allocated: " <<currentCategory.allocated << endl;
-        cout << "Spent: " <<currentCategory.spent << endl;
-        cout << "Remaining: " <<currentCategory.getRemaining() << endl;
+        Category* currentCategory = getCategory(name);
+        // Check if category exists
+        if(currentCategory == nullptr){
+            cout << "Category not found" << endl;
+            return; 
+        }
+        cout << "Category: " << currentCategory->name << endl;
+        cout << "Allocated: " << currentCategory->allocated << endl;
+        cout << "Spent: " << currentCategory->spent << endl;
+        cout << "Remaining: " << currentCategory->getRemaining() << endl;
         cout << "----------" << endl;
     }
     
@@ -105,7 +109,7 @@ class TransactionManager{
                 cout << "Coudln't find the correct category" << endl;
                 return;
             }
-            
+
             currentCategory->spent += transaction.amount;
             // Add to all transactions vector
             allTransactions.push_back(transaction);
