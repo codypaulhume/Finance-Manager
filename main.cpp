@@ -24,7 +24,13 @@ private:
 
 public:
     void addCategory(const Category& category){
-        // Storing the category using the name as its key, and the argument as the value
+        // If category exists, do not add
+        if(categories.count(category.name) == 1){
+            cout << "Category already exists" << endl;
+            return;
+        }
+
+        // Add new category to map
         categories[category.name] = category;
     }
 
@@ -43,7 +49,7 @@ public:
         cout << "----------" << endl;
     }
 
-    void printCategoryDetails(string name){
+    void printCategoryDetails(const string& name){
         cout << "Category Details:" << endl;
         Category currentCategory = categories[name];
         cout << "Category: " << currentCategory.name << endl;
@@ -72,17 +78,29 @@ class TransactionManager{
             : categoryManager(incomingManager) {}
 
         void addTransaction(const Transaction& transaction){
+            // Check if transaction with that ID already exists
+            auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&transaction](const Transaction& t){
+                return t.id == transaction.id;
+            });
+
+            // If we find a duplicate ID - Bad
+            if(iterator != allTransactions.end()){
+                cout << "Duplicate transaction ID. Please ensure all transaction IDs are unique" << endl;
+                return;
+            }
+
             // Grab current category
             Category& currentCategory = categoryManager.getCategory(transaction.category);
             currentCategory.spent += transaction.amount;
             // Add to all transactions and recent transactions
             allTransactions.push_back(transaction);
+            
         }
 
         void removeTransaction(const Transaction& transaction){
 
-            auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&transaction](const Transaction& t)
-            {return t.id == transaction.id;});
+            auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&transaction](const Transaction& t){
+                return t.id == transaction.id;});
 
             // If we didn't find the transaction matching the id
             if(iterator == allTransactions.end()){
@@ -94,7 +112,7 @@ class TransactionManager{
             Category& currentCategory = categoryManager.getCategory(iterator->category);
 
             // Multiply by negative 1 to add it back
-            currentCategory.spent += (iterator->amount * -1);
+            currentCategory.spent -= (iterator->amount);
 
             allTransactions.erase(iterator);
         }
@@ -160,10 +178,13 @@ int main(){
     FinanceManager financeManager;
 
     financeManager.addCategory(fixed);
+    // Testing duplicate categories
+    financeManager.addCategory(fixed);
     financeManager.addCategory(entertainment);
     financeManager.addCategory(groceries);
-    //financeManager.printCategories();
 
+    financeManager.addTransaction(expense);
+    // Testing duplicate transaction ID
     financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
     financeManager.printCategoryDetails("Fixed");
