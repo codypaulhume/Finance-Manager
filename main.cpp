@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include <algorithm>
 #include <stack>
 #include <vector>
 
@@ -23,7 +24,7 @@ private:
     unordered_map<string, Category> categories;
 
 public:
-    void addCategory(Category category){
+    void addCategory(const Category& category){
         // Storing the category using the name as its key, and the argument as the value
         categories[category.name] = category;
     }
@@ -37,7 +38,7 @@ public:
     }
 
     void printCategories(){
-        for(auto e : categories){
+        for(const auto& e : categories){
             cout << e.first << endl;
         }
     }
@@ -63,40 +64,43 @@ struct Transaction{
 class TransactionManager{
     private:
         CategoryManager& categoryManager;
-        stack<Transaction> recentTransactions;
+        vector<Transaction> allTransactions;
     public:
         TransactionManager(CategoryManager& incomingManager)
             : categoryManager(incomingManager) {}
 
-        void addTransaction(Transaction transaction){
+        void addTransaction(const Transaction& transaction){
             // Grab current category
             Category& currentCategory = categoryManager.getCategory(transaction.category);
             currentCategory.spent += transaction.amount;
-            recentTransactions.push(transaction);
+            // Add to all transactions and recent transactions
+            allTransactions.push_back(transaction);
         }
 
-        void removeTransaction(Transaction transaction){
-            // Grab current category
-            Category& currentCategory = categoryManager.getCategory(transaction.category);
-            // Multiply by negative 1 to add it back
-            currentCategory.spent += (transaction.amount * -1);
-        }
+        void removeTransaction(const Transaction& transaction){
 
-        void undo(){
-            // Check to see if its empty
-            if(recentTransactions.empty()){
-                cout << "Nothing to undo" << endl;
+            auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&transaction](const Transaction& t)
+            {return t.id == transaction.id;});
+
+            // If we didn't find the transaction matching the id
+            if(iterator == allTransactions.end()){
+                cout << "Transaction not found" << endl;
                 return;
-            }else{
-                // Grab the most recent transaction from the stack and pop it.
-                Transaction currentTransacton = recentTransactions.top();
-                recentTransactions.pop();
-
-                // Call remove transaction
-                removeTransaction(currentTransacton);
             }
-            
 
+            // Grab current category
+            Category& currentCategory = categoryManager.getCategory(iterator->category);
+
+            // Multiply by negative 1 to add it back
+            currentCategory.spent += (iterator->amount * -1);
+
+            allTransactions.erase(iterator);
+        }
+
+        void printTransactions(){
+            for(const auto& transaction : allTransactions){
+                cout << transaction.id << endl;
+            }
         }
 };
 
@@ -111,7 +115,7 @@ public:
         : categoryManager(),
           transactionManager(categoryManager) {}
 
-    void addCategory(Category category){
+    void addCategory(const Category& category){
         categoryManager.addCategory(category);
     }
 
@@ -127,16 +131,16 @@ public:
         categoryManager.printCategoryDetails(name);
     }
 
-    void addTransaction(Transaction transaction){
+    void addTransaction(const Transaction& transaction){
         transactionManager.addTransaction(transaction);
     }
 
-    void removeTransaction(Transaction transaction){
+    void removeTransaction(const Transaction& transaction){
         transactionManager.removeTransaction(transaction);
     }
 
-    void undo(){
-        transactionManager.undo();
+    void printTransactions(){
+        transactionManager.printTransactions();
     }
 };
 
@@ -147,6 +151,7 @@ int main(){
     Category groceries{"Groceries",500,0.00};
 
     Transaction expense{0,850,"Fixed","Thats how much I pay for rent","Today"};
+    Transaction expenseTwo{1,850,"Fixed","Thats how much I pay for rent","Today"};
     
     FinanceManager financeManager;
 
@@ -156,7 +161,9 @@ int main(){
     financeManager.printCategories();
 
     financeManager.addTransaction(expense);
-    financeManager.printCategoryDetails("Fixed");
-    financeManager.undo();
-    financeManager.printCategoryDetails("Fixed");
+    financeManager.addTransaction(expenseTwo);
+    // financeManager.printCategoryDetails("Fixed");
+    financeManager.printTransactions();
+    financeManager.removeTransaction(expense);
+    financeManager.printTransactions();
 }
