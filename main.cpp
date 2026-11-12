@@ -34,11 +34,11 @@ public:
         categories[category.name] = category;
     }
 
-    void removeCategory(string name){
+    void removeCategory(const string& name){
         categories.erase(name);
     }
 
-    Category& getCategory(string name){
+    Category& getCategory(const string& name){
         return categories[name];
     }
 
@@ -85,7 +85,7 @@ class TransactionManager{
 
             // If we find a duplicate ID - Bad
             if(iterator != allTransactions.end()){
-                cout << "Duplicate transaction ID. Please ensure all transaction IDs are unique" << endl;
+                cout << "Duplicate transaction ID. Please ensure all transaction IDs are unique." << endl;
                 return;
             }
 
@@ -141,7 +141,7 @@ public:
         categoryManager.addCategory(category);
     }
 
-    void removeCategory(string category){
+    void removeCategory(const string& category){
         categoryManager.removeCategory(category);
     }
 
@@ -149,7 +149,7 @@ public:
         categoryManager.printCategories();
     }
 
-    void printCategoryDetails(string name){
+    void printCategoryDetails(const string& name){
         categoryManager.printCategoryDetails(name);
     }
 
