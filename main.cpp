@@ -25,7 +25,7 @@ private:
 public:
     void addCategory(const Category& category){
         // If category exists, do not add
-        if(categories.count(category.name) == 1){
+        if(categories.count(category.name) > 0){
             cout << "Category already exists" << endl;
             return;
         }
@@ -38,8 +38,16 @@ public:
         categories.erase(name);
     }
 
-    Category& getCategory(const string& name){
-        return categories[name];
+    Category* getCategory(const string& name){
+        auto iterator = categories.find(name);
+
+        if(iterator == categories.end()){
+            // Throw an exception
+            return nullptr;
+        }
+
+        // Found the category
+        return &iterator->second;
     }
 
     void printCategories(){
@@ -90,9 +98,16 @@ class TransactionManager{
             }
 
             // Grab current category
-            Category& currentCategory = categoryManager.getCategory(transaction.category);
-            currentCategory.spent += transaction.amount;
-            // Add to all transactions and recent transactions
+            Category* currentCategory = categoryManager.getCategory(transaction.category);
+
+            // Check to see if category exists
+            if(currentCategory == nullptr){
+                cout << "Coudln't find the correct category" << endl;
+                return;
+            }
+            
+            currentCategory->spent += transaction.amount;
+            // Add to all transactions vector
             allTransactions.push_back(transaction);
             
         }
@@ -109,10 +124,15 @@ class TransactionManager{
             }
 
             // Grab current category
-            Category& currentCategory = categoryManager.getCategory(iterator->category);
+            Category* currentCategory = categoryManager.getCategory(iterator->category);
 
-            // Multiply by negative 1 to add it back
-            currentCategory.spent -= (iterator->amount);
+            // Check to see if category exists
+            if(currentCategory == nullptr){
+                cout << "Coudln't find the correct category" << endl;
+                return;
+            }
+            // Subtract ammount from spent variable
+            currentCategory->spent -= (iterator->amount);
 
             allTransactions.erase(iterator);
         }
