@@ -110,6 +110,11 @@ class TransactionManager{
                 return;
             }
 
+            if(transaction.amount <= 0){
+                cout << "Amount must be greater than 0" << endl;
+                return;
+            }
+
             currentCategory->spent += transaction.amount;
             // Add to all transactions vector
             allTransactions.push_back(transaction);
