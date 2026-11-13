@@ -148,6 +148,14 @@ class TransactionManager{
             }
             cout << "----------" << endl;
         }
+        
+        bool checkCategory(const string& category){
+            auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&category](const Transaction &t){
+                return t.category == category;
+            });
+
+            return iterator != allTransactions.end();
+        }
 };
 
 class FinanceManager
@@ -166,6 +174,10 @@ public:
     }
 
     void removeCategory(const string& category){
+        if(transactionManager.checkCategory(category)){
+            cout << "Cannot remove category. Transaction with category exists" << endl;
+            return;
+        }
         categoryManager.removeCategory(category);
     }
 
@@ -211,6 +223,8 @@ int main(){
     // Testing duplicate transaction ID
     financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
+    // Testing check for category removal when expense exists
+    financeManager.removeCategory("Fixed");
     financeManager.printCategoryDetails("Fixed");
 
     financeManager.printTransactions();
