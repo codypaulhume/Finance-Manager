@@ -70,7 +70,40 @@ public:
         cout << "Remaining: " << currentCategory->getRemaining() << endl;
         cout << "----------" << endl;
     }
-    
+
+    double getTotalAllocated(){
+        double res = 0;
+        for(auto it : categories){
+            res += it.second.allocated;
+        }
+        return res;
+    }
+
+    string getTopSpendingCategory(){
+        double ratio = 0;
+        double topRatio = 0;
+        string topCategory = "";
+
+        for(auto it : categories){
+            if(!it.second.spent == 0){
+                ratio = (it.second.spent / it.second.allocated) * 100;
+            }
+            if(ratio >= topRatio){
+                topCategory = it.second.name;
+            }
+            topRatio = max(ratio, topRatio);
+
+            // Reset ratio
+            ratio = 0;
+        }
+
+        // Check if no money was spent
+        if(topRatio == 0){
+            return "No top spending category";
+        }
+
+        return topCategory;
+    }
 };
 
 struct Transaction{
@@ -161,6 +194,18 @@ class TransactionManager{
 
             return iterator != allTransactions.end();
         }
+
+        double getTotalSpent(){
+            int res = 0;
+            for(auto it : allTransactions){
+                res += it.amount;
+            }
+            return res;
+        }
+
+        vector<Transaction> getAllTransactions(){
+            return allTransactions;
+        }
 };
 
 class FinanceManager
@@ -205,6 +250,19 @@ public:
     void printTransactions(){
         transactionManager.printTransactions();
     }
+
+    vector<Transaction> getAllTransactions(){
+        // Cout for C++ purposes, and returning vector for UI purposes
+        vector<Transaction> res = transactionManager.getAllTransactions();
+
+        cout << "--------------------------------------" << endl;
+        cout << "           All Transactions" << endl;
+        cout << "--------------------------------------" << endl;
+        for(auto it : res){
+            cout << "Category: " << it.category << ", Description: " << it.description << ", Amount: " << it.amount << ", Date: " << it.date << endl;
+        }
+        return res;
+    }
 };
 
 int main(){
@@ -219,22 +277,46 @@ int main(){
     FinanceManager financeManager;
 
     financeManager.addCategory(fixed);
-    // Testing duplicate categories
-    financeManager.addCategory(fixed);
     financeManager.addCategory(entertainment);
     financeManager.addCategory(groceries);
 
     financeManager.addTransaction(expense);
-    // Testing duplicate transaction ID
-    financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
-    // Testing check for category removal when expense exists
-    financeManager.removeCategory("Fixed");
-    financeManager.printCategoryDetails("Fixed");
 
-    financeManager.printTransactions();
-
-    financeManager.removeTransaction(expense);
-    financeManager.printTransactions();
-    financeManager.printCategoryDetails("Fixed");
+    financeManager.getAllTransactions();
 }
+
+
+
+
+
+// Testing code
+
+    // Category fixed{"Fixed",1800.00,0.00};
+    // Category entertainment{"Entertainment",500,0.00};
+    // Category groceries{"Groceries",500,0.00};
+
+    // Transaction expense{0,850,"Fixed","Thats how much I pay for rent","Today"};
+    // Transaction expenseTwo{1,850,"Fixed","Thats how much I pay for rent","Today"};
+    
+    // FinanceManager financeManager;
+
+    // financeManager.addCategory(fixed);
+    // // Testing duplicate categories
+    // financeManager.addCategory(fixed);
+    // financeManager.addCategory(entertainment);
+    // financeManager.addCategory(groceries);
+
+    // financeManager.addTransaction(expense);
+    // // Testing duplicate transaction ID
+    // financeManager.addTransaction(expense);
+    // financeManager.addTransaction(expenseTwo);
+    // // Testing check for category removal when expense exists
+    // financeManager.removeCategory("Fixed");
+    // financeManager.printCategoryDetails("Fixed");
+
+    // financeManager.printTransactions();
+
+    // financeManager.removeTransaction(expense);
+    // financeManager.removeTransaction(expenseTwo);
+    // financeManager.printTransactions();
