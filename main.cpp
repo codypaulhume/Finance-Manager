@@ -8,6 +8,7 @@ using namespace std;
 
 struct Category
 {
+        int id;
         string name;
         double allocated;
         double spent;
@@ -110,6 +111,7 @@ public:
 
 struct Transaction{
     int id;
+    int categoryID;
     double amount;
     string category;
     string description;
@@ -273,12 +275,12 @@ public:
 
 int main(){
 
-    Category fixed{"Fixed",1800.00,0.00};
-    Category entertainment{"Entertainment",500,0.00};
-    Category groceries{"Groceries",500,0.00};
+    Category fixed{1,"Fixed",1800.00,0.00};
+    Category entertainment{2,"Entertainment",500,0.00};
+    Category groceries{3,"Groceries",500,0.00};
 
-    Transaction expense{0,850,"Fixed","Thats how much I pay for rent","Today"};
-    Transaction expenseTwo{1,850,"Fixed","Thats how much I pay for rent","Today"};
+    Transaction expense{0,1,850,"Fixed","Thats how much I pay for rent","Today"};
+    Transaction expenseTwo{1,1,850,"Fixed","Thats how much I pay for rent","Today"};
     
     FinanceManager financeManager;
 
