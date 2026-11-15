@@ -73,7 +73,7 @@ public:
 
     double getTotalAllocated(){
         double res = 0;
-        for(auto it : categories){
+        for(const auto& it : categories){
             res += it.second.allocated;
         }
         return res;
@@ -84,17 +84,19 @@ public:
         double topRatio = 0;
         string topCategory = "";
 
-        for(auto it : categories){
-            if(!it.second.spent == 0){
+        for(const auto& it : categories){
+            if(it.second.allocated != 0){
+                if(it.second.spent > 0){
                 ratio = (it.second.spent / it.second.allocated) * 100;
-            }
-            if(ratio >= topRatio){
-                topCategory = it.second.name;
-            }
-            topRatio = max(ratio, topRatio);
+                }
+                if(ratio >= topRatio){
+                    topCategory = it.second.name;
+                }
+                topRatio = max(ratio, topRatio);
 
-            // Reset ratio
-            ratio = 0;
+                // Reset ratio
+                ratio = 0;
+            }
         }
 
         // Check if no money was spent
@@ -195,9 +197,9 @@ class TransactionManager{
             return iterator != allTransactions.end();
         }
 
-        double getTotalSpent(){
-            int res = 0;
-            for(auto it : allTransactions){
+        const double getTotalSpent(){
+            double res = 0;
+            for(const auto& it : allTransactions){
                 res += it.amount;
             }
             return res;
@@ -252,16 +254,20 @@ public:
     }
 
     vector<Transaction> getAllTransactions(){
-        // Cout for C++ purposes, and returning vector for UI purposes
+        return transactionManager.getAllTransactions();
+    }
+
+    void printAllTransactions(){
+        // Cout for C++ purposes
         vector<Transaction> res = transactionManager.getAllTransactions();
 
         cout << "--------------------------------------" << endl;
         cout << "           All Transactions" << endl;
         cout << "--------------------------------------" << endl;
-        for(auto it : res){
+        for(const auto& it : res){
             cout << "Category: " << it.category << ", Description: " << it.description << ", Amount: " << it.amount << ", Date: " << it.date << endl;
         }
-        return res;
+        return;
     }
 };
 
@@ -283,7 +289,7 @@ int main(){
     financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
 
-    financeManager.getAllTransactions();
+    financeManager.printAllTransactions();
 }
 
 
