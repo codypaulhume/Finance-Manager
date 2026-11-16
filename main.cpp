@@ -21,26 +21,26 @@ class CategoryManager
 {
 private:
     // Stores all categories and their values
-    unordered_map<string, Category> categories;
+    unordered_map<int, Category> categories;
 
 public:
     void addCategory(const Category& category){
         // If category exists, do not add
-        if(categories.count(category.name) > 0){
+        if(categories.count(category.id) > 0){
             cout << "Category already exists" << endl;
             return;
         }
 
         // Add new category to map
-        categories[category.name] = category;
+        categories[category.id] = category;
     }
 
-    void removeCategory(const string& name){
-        categories.erase(name);
+    void removeCategory(const int& id){
+        categories.erase(id);
     }
 
-    Category* getCategory(const string& name){
-        auto iterator = categories.find(name);
+    Category* getCategory(const int& id){
+        auto iterator = categories.find(id);
 
         if(iterator == categories.end()){
             return nullptr;
@@ -57,9 +57,18 @@ public:
         cout << "----------" << endl;
     }
 
-    void printCategoryDetails(const string& name){
+    // Taking objects from UM and pushing them into a vector. This will be used for the financial summary.
+    vector<Category> getAllCategories() const{
+        vector<Category> result;
+        for(auto it : categories){
+            result.push_back(it.second);
+        }
+        return result;
+    }
+
+    void printCategoryDetails(const int& id){
         cout << "Category Details:" << endl;
-        Category* currentCategory = getCategory(name);
+        Category* currentCategory = getCategory(id);
         // Check if category exists
         if(currentCategory == nullptr){
             cout << "Category not found" << endl;
@@ -72,7 +81,7 @@ public:
         cout << "----------" << endl;
     }
 
-    double getTotalAllocated(){
+    double getTotalAllocated() const{
         double res = 0;
         for(const auto& it : categories){
             res += it.second.allocated;
@@ -127,7 +136,7 @@ class TransactionManager{
             : categoryManager(incomingManager) {}
 
         void addTransaction(const Transaction& transaction){
-            // Check if transaction with that ID already exists
+            // Check if transaction with duplicate ID already exists
             auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&transaction](const Transaction& t){
                 return t.id == transaction.id;
             });
@@ -139,7 +148,7 @@ class TransactionManager{
             }
 
             // Grab current category
-            Category* currentCategory = categoryManager.getCategory(transaction.category);
+            Category* currentCategory = categoryManager.getCategory(transaction.categoryID);
 
             // Check to see if category exists
             if(currentCategory == nullptr){
@@ -169,8 +178,8 @@ class TransactionManager{
                 return;
             }
 
-            // Grab current category
-            Category* currentCategory = categoryManager.getCategory(iterator->category);
+            // Grab current category using its Category ID. These two should match
+            Category* currentCategory = categoryManager.getCategory(iterator->categoryID);
 
             // Check to see if category exists
             if(currentCategory == nullptr){
@@ -191,15 +200,15 @@ class TransactionManager{
             cout << "----------" << endl;
         }
         
-        bool checkCategory(const string& category){
+        bool checkCategory(const int& category){
             auto iterator = find_if(allTransactions.begin(), allTransactions.end(), [&category](const Transaction &t){
-                return t.category == category;
+                return t.categoryID == category;
             });
 
             return iterator != allTransactions.end();
         }
 
-        const double getTotalSpent(){
+        double getTotalSpent() const{
             double res = 0;
             for(const auto& it : allTransactions){
                 res += it.amount;
@@ -207,9 +216,20 @@ class TransactionManager{
             return res;
         }
 
-        vector<Transaction> getAllTransactions(){
+        vector<Transaction> getAllTransactions() const{
             return allTransactions;
         }
+};
+
+struct FinancialSummary{
+    double totalAllocated;
+    double totalSpent;
+    double getTotalRemaining() const{
+        return totalAllocated - totalSpent;
+    }
+    vector<Category> categories;
+    vector<Transaction> allTransactions;
+    string topSpendingCategory;
 };
 
 class FinanceManager
@@ -227,7 +247,7 @@ public:
         categoryManager.addCategory(category);
     }
 
-    void removeCategory(const string& category){
+    void removeCategory(const int& category){
         if(transactionManager.checkCategory(category)){
             cout << "Cannot remove category. Transaction with category exists" << endl;
             return;
@@ -239,8 +259,8 @@ public:
         categoryManager.printCategories();
     }
 
-    void printCategoryDetails(const string& name){
-        categoryManager.printCategoryDetails(name);
+    void printCategoryDetails(const int& id){
+        categoryManager.printCategoryDetails(id);
     }
 
     void addTransaction(const Transaction& transaction){
@@ -267,7 +287,42 @@ public:
         cout << "           All Transactions" << endl;
         cout << "--------------------------------------" << endl;
         for(const auto& it : res){
-            cout << "Category: " << it.category << ", Description: " << it.description << ", Amount: " << it.amount << ", Date: " << it.date << endl;
+            cout << "Category: " << it.category << ", Description: " << it.description << ", Amount: $" << it.amount << ", Date: " << it.date << endl;
+        }
+        return;
+    }
+
+    FinancialSummary getFinancialSummary(){
+        FinancialSummary summary{categoryManager.getTotalAllocated(), transactionManager.getTotalSpent(), categoryManager.getAllCategories(), transactionManager.getAllTransactions(), categoryManager.getTopSpendingCategory()};
+        return summary;
+    }
+
+    void printFinancialSummary(){
+        FinancialSummary summary = getFinancialSummary();
+        cout << "--------------------------------------" << endl;
+        cout << "         Financial Summary" << endl;
+        cout << "--------------------------------------" << endl;
+        cout << "Total Allocated: $" << summary.totalAllocated << endl;
+        cout << "Total Spent: $" << summary.totalSpent << endl;
+        cout << "Total Remaining: $" << summary.getTotalRemaining() << endl;
+        cout << "Top Spending Category: " << summary.topSpendingCategory << endl;
+        cout << "--------------------------------------" << endl;
+        cout << "         Breakdown by Category" << endl;
+        cout << "--------------------------------------" << endl;
+        for(const auto& category : summary.categories){
+            cout << "Category: " << category.name << endl;
+            cout << "Total Allocated: $" << category.allocated << endl;
+            cout << "Total Spent: $" << category.spent << endl;
+            cout << "Total Remaining: $" << category.getRemaining() << endl;
+            cout << "------------------" << endl;
+        }
+
+        // Print all transactions
+        cout << "--------------------------------------" << endl;
+        cout << "           All Transactions" << endl;
+        cout << "--------------------------------------" << endl;
+        for(const auto& it : summary.allTransactions){
+            cout << "Category: " << it.category << ", Description: " << it.description << ", Amount: $" << it.amount << ", Date: " << it.date << endl;
         }
         return;
     }
@@ -278,9 +333,8 @@ int main(){
     Category fixed{1,"Fixed",1800.00,0.00};
     Category entertainment{2,"Entertainment",500,0.00};
     Category groceries{3,"Groceries",500,0.00};
-
-    Transaction expense{0,1,850,"Fixed","Thats how much I pay for rent","Today"};
-    Transaction expenseTwo{1,1,850,"Fixed","Thats how much I pay for rent","Today"};
+    Transaction expense{0,1,850,"Fixed","Rent","10/31/26"};
+    Transaction expenseTwo{1,2,98.56,"Entertainment","Movie Theater","11/02/26"};
     
     FinanceManager financeManager;
 
@@ -291,7 +345,8 @@ int main(){
     financeManager.addTransaction(expense);
     financeManager.addTransaction(expenseTwo);
 
-    financeManager.printAllTransactions();
+    //financeManager.printAllTransactions();
+    financeManager.printFinancialSummary();
 }
 
 
@@ -299,6 +354,7 @@ int main(){
 
 
 // Testing code
+// Everything related to category needs to be updated from using its name (string) to id (int)
 
     // Category fixed{"Fixed",1800.00,0.00};
     // Category entertainment{"Entertainment",500,0.00};
